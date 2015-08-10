@@ -168,6 +168,9 @@
     Fullpage.prototype.stop = function() {
         this.status = 0;
     };
+    Fullpage.prototype.getCurIndex = function () {
+        return this.curIndex;
+    };
     Fullpage.prototype.moveTo = function(next, anim) {
         var that = this;
         var ele = that.ele;
@@ -181,10 +184,15 @@
         }
 
         if (next !== cur) {
-            that.o.beforeChange({
+            var flag = that.o.beforeChange({
                 next: next,
                 cur: cur
             });
+
+            // beforeChange 显示返回false 可阻止滚屏的发生
+            if (flag === false) {
+                return 1;
+            }
         }
 
         that.movingFlag = true;

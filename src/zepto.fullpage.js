@@ -19,6 +19,7 @@
         loop: false,
         drag: false,
         dir: 'v',
+        der: 0.1,
         change: function(data) {},
         beforeChange: function(data) {},
         afterChange: function(data) {},
@@ -105,8 +106,8 @@
                     return 0;
                 }
 
-                var sub = that.o.dir === 'v' ? e.changedTouches[0].pageY - that.startY : e.changedTouches[0].pageX - that.startX;
-                var der = (sub > 30 || sub < -30) ? sub > 0 ? -1 : 1 : 0;
+                var sub = that.o.dir === 'v' ? (e.changedTouches[0].pageY - that.startY)/that.height : (e.changedTouches[0].pageX - that.startX)/that.width;
+                var der = (sub > that.o.der || sub < -that.o.der) ? sub > 0 ? -1 : 1 : 0;
 
                 that.moveTo(that.curIndex + der, true);
             });
@@ -156,6 +157,7 @@
             var that = this;
             var $this = that.$this;
             var cur = that.curIndex;
+
             next = fix(next, that.pagesLength, that.o.loop);
 
             if (anim) {
@@ -165,10 +167,15 @@
             }
 
             if (next !== cur) {
-                that.o.beforeChange({
+                var flag = that.o.beforeChange({
                     next: next,
                     cur: cur
                 });
+
+                // beforeChange 显示返回false 可阻止滚屏的发生
+                if (flag === false) {
+                    return 1;
+                }
             }
 
             that.movingFlag = true;
@@ -192,12 +199,17 @@
                     that.$pages.removeClass('cur').eq(next).addClass('cur');
                 }
             }, that.o.duration);
+
+            return 0;
         },
         movePrev: function(anim) {
             this.moveTo(this.curIndex - 1, anim);
         },
         moveNext: function(anim) {
             this.moveTo(this.curIndex + 1, anim);
+        },
+        getCurIndex: function () {
+            return this.curIndex;
         }
     });
 
@@ -209,12 +221,12 @@
     };
     $.fn.fullpage.version = '0.3.1';
     //暴露方法
-    $.each(['update', 'moveTo', 'moveNext', 'movePrev', 'start', 'stop'], function(key, val) {
+    $.each(['update', 'moveTo', 'moveNext', 'movePrev', 'start', 'stop', 'getCurIndex'], function(key, val) {
         $.fn.fullpage[val] = function() {
             if (!fullpage) {
                 return 0;
             }
-            fullpage[val].apply(fullpage, [].slice.call(arguments, 0));
+            return fullpage[val].apply(fullpage, [].slice.call(arguments, 0));
         };
     });
 }(Zepto, window));
